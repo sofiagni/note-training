@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treinador de Notas Musicais</title>
+    <style>
+        :root {
+            --color-primary: #218084;
+            --color-primary-hover: #1a6670;
+            --color-success: #22c55e;
+            --color-error: #ef4444;
+            --color-bg: #f5f5f5;
+            --color-surface: #ffffff;
+            --color-text: #1a1a1a;
+            --color-text-secondary: #666666;
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --space-16: 16px;
+            --space-20: 20px;
+            --space-24: 24px;
+            --radius-lg: 12px;
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --duration-fast: 150ms;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background-color: var(--color-bg);
+            color: var(--color-text);
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-20);
+        }
+
+        .container {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: var(--space-24);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0 0 var(--space-24) 0;
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--duration-fast) ease;
+            margin: var(--space-16) 8px;
+            min-width: 140px;
+        }
+
+        .button-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .button-primary:hover {
+            background-color: var(--color-primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(33, 128, 132, 0.3);
+        }
+
+        .button-primary:active {
+            transform: translateY(0);
+        }
+
+        .button-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-secondary {
+            background-color: #e5e5e5;
+            color: var(--color-text);
+        }
+
+        .button-secondary:hover {
+            background-color: #d5d5d5;
+            transform: translateY(-2px);
+        }
+
+        .status-section {
+            margin: var(--space-24) 0;
+            padding: var(--space-20);
+            background: #f9f9f9;
+            border-radius: var(--radius-lg);
+            border: 2px solid #e5e5e5;
+            transition: all var(--duration-fast) ease;
+        }
+
+        .note-display {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin: var(--space-16) 0;
+            font-family: monospace;
+        }
+
+        .feedback {
+            font-size: 16px;
+            font-weight: 500;
+            margin: var(--space-16) 0;
+            min-height: 24px;
+            transition: color var(--duration-fast) ease;
+        }
+
+        .feedback.success {
+            color: var(--color-success);
+        }
+
+        .feedback.error {
+            color: var(--color-error);
+        }
+
+        .feedback.info {
+            color: var(--color-text-secondary);
+        }
+
+        .frequency-display {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin: var(--space-16) 0;
+            font-family: monospace;
+        }
+
+        .message {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin: var(--space-16) 0;
+            line-height: 1.6;
+        }
+
+        .status-active {
+            border-color: var(--color-primary);
+            background: rgba(33, 128, 132, 0.05);
+        }
+
+        .indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .indicator.listening {
+            background-color: var(--color-primary);
+        }
+
+        .indicator.success {
+            background-color: var(--color-success);
+            animation: none;
+        }
+
+        .indicator.error {
+            background-color: var(--color-error);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .note-list {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-top: var(--space-16);
+            padding-top: var(--space-16);
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .error-message {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--color-error);
+            padding: var(--space-16);
+            border-radius: 4px;
+            margin: var(--space-16) 0;
+            text-align: left;
+            color: var(--color-error);
+            font-size: 14px;
+        }
+
+        .success-message {
+            background-color: rgba(34, 197, 94, 0.1);
+            border-left: 4px solid var(--color-success);
+            padding: var(--space-16);
+            border-radius: 4px;
+            margin: var(--space-16) 0;
+            text-align: left;
+            color: var(--color-success);
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: var(--space-16);
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .button {
+                font-size: 14px;
+                padding: 10px 20px;
+                min-width: 120px;
+            }
+
+            .note-display {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 Treinador de Notas</h1>
+
+        <div class="controls">
+            <button class="button button-primary" id="startBtn">Iniciar</button>
+            <button class="button button-secondary" id="stopBtn" disabled>Sair</button>
+        </div>
+
+        <div class="status-section" id="statusSection">
+            <div class="message" id="initialMessage">
+                Clique em "Iniciar" para começar o treinamento. Você precisará permitir o acesso ao microfone.
+            </div>
+            <div class="note-list">Notas disponíveis: A, A#, B, C, C#, D, D#, E, F, F#, G, G#</div>
+        </div>
+
+        <div id="trainingContent" style="display: none;">
+            <div class="status-section status-active">
+                <div style="margin-bottom: var(--space-16);">
+                    <span class="indicator listening"></span>
+                    <span id="statusText" style="font-weight: 500;">Procurando nota...</span>
+                </div>
+                <div class="note-display" id="targetNote">C</div>
+                <div class="message">Toque a nota acima no seu instrumento</div>
+                <div class="frequency-display" id="frequencyDisplay"></div>
+            </div>
+
+            <div class="status-section">
+                <div class="feedback" id="feedback"></div>
+                <div id="errorDetails" style="font-size: 12px; color: var(--color-error); margin-top: 8px;"></div>
+            </div>
+
+            <div class="status-section">
+                <div style="font-size: 14px; color: var(--color-text-secondary);">
+                    Tentativas: <strong id="attempts">0</strong>
+                </div>
+            </div>
+        </div>
+
+        <div id="errorSection" style="display: none;">
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        // Frequências das notas (escala cromática)
+        const NOTE_FREQUENCIES = {
+            'C': 261.63,
+            'C#': 277.18,
+            'D': 293.66,
+            'D#': 311.13,
+            'E': 329.63,
+            'F': 349.23,
+            'F#': 369.99,
+            'G': 392.00,
+            'G#': 415.30,
+            'A': 440.00,
+            'A#': 466.16,
+            'B': 493.88
+        };
+
+        const NOTES = Object.keys(NOTE_FREQUENCIES);
+
+        let audioContext;
+        let analyser;
+        let microphone;
+        let isRunning = false;
+        let currentTargetNote = null;
+        let attempts = 0;
+        let animationId = null;
+
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusSection = document.getElementById('statusSection');
+        const trainingContent = document.getElementById('trainingContent');
+        const errorSection = document.getElementById('errorSection');
+        const targetNoteDisplay = document.getElementById('targetNote');
+        const feedbackDisplay = document.getElementById('feedback');
+        const errorDetailsDisplay = document.getElementById('errorDetails');
+        const frequencyDisplay = document.getElementById('frequencyDisplay');
+        const statusText = document.getElementById('statusText');
+        const attemptsDisplay = document.getElementById('attempts');
+
+        startBtn.addEventListener('click', startTraining);
+        stopBtn.addEventListener('click', stopTraining);
+
+        function showError(message) {
+            errorSection.style.display = 'block';
+            statusSection.style.display = 'none';
+            trainingContent.style.display = 'none';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        async function startTraining() {
+            try {
+                // Criar contexto de áudio
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 4096;
+
+                // Obter acesso ao microfone
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+
+                isRunning = true;
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                errorSection.style.display = 'none';
+                statusSection.style.display = 'none';
+                trainingContent.style.display = 'block';
+                attempts = 0;
+                attemptsDisplay.textContent = '0';
+
+                pickNewNote();
+                detectPitch();
+            } catch (error) {
+                showError('Erro ao acessar o microfone. Verifique as permissões do navegador.');
+                console.error(error);
+            }
+        }
+
+        function stopTraining() {
+            isRunning = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+
+            if (microphone) {
+                microphone.disconnect();
+            }
+            if (audioContext) {
+                audioContext.close();
+            }
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+
+            statusSection.style.display = 'block';
+            trainingContent.style.display = 'none';
+            errorSection.style.display = 'none';
+            document.getElementById('initialMessage').textContent = 'Treinamento finalizado! Clique em "Iniciar" para treinar novamente.';
+        }
+
+        function pickNewNote() {
+            currentTargetNote = NOTES[Math.floor(Math.random() * NOTES.length)];
+            targetNoteDisplay.textContent = currentTargetNote;
+            feedbackDisplay.textContent = '';
+            feedbackDisplay.className = 'feedback';
+            errorDetailsDisplay.textContent = '';
+            attempts++;
+            attemptsDisplay.textContent = attempts.toString();
+            statusText.textContent = 'Procurando nota...';
+            frequencyDisplay.textContent = '';
+        }
+
+        function detectPitch() {
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+
+            const buffer = new Float32Array(analyser.fftSize);
+            analyser.getFloatTimeDomainData(buffer);
+
+            const frequency = autoCorrelate(buffer, audioContext.sampleRate);
+
+            if (frequency > 0) {
+                const detectedNote = frequencyToNote(frequency);
+                const detectedFreq = NOTE_FREQUENCIES[detectedNote];
+                const cents = 1200 * Math.log2(frequency / detectedFreq);
+
+                frequencyDisplay.textContent = `${frequency.toFixed(1)} Hz → ${detectedNote} (${cents > 0 ? '+' : ''}${cents.toFixed(0)} cents)`;
+
+                if (detectedNote === currentTargetNote) {
+                    // Verifica se está dentro de uma tolerância razoável (±50 cents)
+                    if (Math.abs(cents) < 50) {
+                        feedbackDisplay.textContent = '✓ Correto! Próxima nota...';
+                        feedbackDisplay.className = 'feedback success';
+                        statusText.textContent = 'Parabéns!';
+                        
+                        setTimeout(() => {
+                            if (isRunning) {
+                                pickNewNote();
+                                detectPitch();
+                            }
+                        }, 1500);
+                        return;
+                    }
+                }
+
+                feedbackDisplay.textContent = '✗ Nota incorreta. Tente novamente.';
+                feedbackDisplay.className = 'feedback error';
+                errorDetailsDisplay.textContent = `Você tocou: ${detectedNote} | Esperado: ${currentTargetNote}`;
+                statusText.textContent = `Ouvido: ${detectedNote}`;
+            } else {
+                feedbackDisplay.textContent = '';
+                frequencyDisplay.textContent = 'Esperando som...';
+                statusText.textContent = 'Procurando nota...';
+            }
+
+            if (isRunning) {
+                animationId = requestAnimationFrame(detectPitch);
+            }
+        }
+
+        function autoCorrelate(buffer, sampleRate) {
+            // Implementação do algoritmo de autocorrelação para detectar pitch
+            let SIZE = buffer.length;
+            let MAX_SAMPLES = Math.floor(SIZE / 2);
+            let best_offset = -1;
+            let best_correlation = 0;
+            let rms = 0;
+
+            // Calcula o RMS (Root Mean Square) do buffer
+            for (let i = 0; i < SIZE; i++) {
+                let val = buffer[i];
+                rms += val * val;
+            }
+            rms = Math.sqrt(rms / SIZE);
+
+            // Não detecta se o sinal é muito fraco
+            if (rms < 0.01) return -1;
+
+            // Procura pelo melhor offset
+            let lastCorrelation = 1;
+            for (let offset = 0; offset < MAX_SAMPLES; offset++) {
+                let correlation = 0;
+                for (let i = 0; i < MAX_SAMPLES; i++) {
+                    correlation += Math.abs(buffer[i] - buffer[i + offset]);
+                }
+                correlation = 1 - (correlation / MAX_SAMPLES);
+                if (correlation > 0.9) {
+                    if (correlation > lastCorrelation) {
+                        let foundGoodCorrelation = false;
+                        if (correlation > best_correlation) {
+                            best_correlation = correlation;
+                            best_offset = offset;
+                            foundGoodCorrelation = true;
+                        }
+                        if (foundGoodCorrelation) {
+                            let shift = (buffer[best_offset + 1] - buffer[best_offset]) / (2 * (2 * buffer[best_offset] - buffer[best_offset + 1] - buffer[best_offset - 1]));
+                            return sampleRate / (best_offset + (8 * shift));
+                        }
+                    }
+                }
+                lastCorrelation = correlation;
+            }
+
+            if (best_correlation > 0.01) {
+                return sampleRate / best_offset;
+            }
+            return -1;
+        }
+
+        function frequencyToNote(frequency) {
+            // Encontra a nota mais próxima para a frequência detectada
+            let closestNote = NOTES[0];
+            let closestDistance = Math.abs(frequency - NOTE_FREQUENCIES[closestNote]);
+
+            for (let note of NOTES) {
+                let distance = Math.abs(frequency - NOTE_FREQUENCIES[note]);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestNote = note;
+                }
+            }
+
+            return closestNote;
+        }
+    </script>
+</body>
+</html>
