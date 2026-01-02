@@ -275,21 +275,14 @@
                 <div class="message" style="margin-bottom: var(--space-20); font-weight: 500;">Escolha o formato das notas:</div>
                 
                 <div style="margin-bottom: var(--space-20);">
-                    <label style="display: block; margin-bottom: var(--space-12); font-weight: 500;">Notação:</label>
+                    <label style="display: block; margin-bottom: var(--space-12); font-weight: 500;">Escolha a notação:</label>
                     <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                         <button class="button option-button" data-notation="letters" style="flex: 1; min-width: 120px;">Letras (C, D, E...)</button>
                         <button class="button option-button" data-notation="solfege" style="flex: 1; min-width: 120px;">Cifras (Dó, Ré, Mi...)</button>
                     </div>
-                </div>
-
-                <div id="clefSection" style="margin-bottom: var(--space-20);">
-                    <label style="display: block; margin-bottom: var(--space-12); font-weight: 500;">Clave:</label>
-                    <div id="clefButtons" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                        <button class="button option-button" data-clef="treble" style="flex: 1; min-width: 120px;">🎼 Clave de Sol</button>
-                        <button class="button option-button" data-clef="bass" style="flex: 1; min-width: 120px;">🎼 Clave de Fá</button>
-                    </div>
-                    <div id="bothClevesInfo" style="display: none; margin-top: var(--space-12); padding: var(--space-12); background: rgba(33, 128, 132, 0.1); border-radius: var(--radius-lg); color: var(--color-text-secondary); font-size: 14px;">
-                        Mostrando as duas claves (Sol e Fá)
+                    <div id="notationInfo" style="margin-top: var(--space-12); padding: var(--space-12); background: rgba(33, 128, 132, 0.1); border-radius: var(--radius-lg); color: var(--color-text-secondary); font-size: 14px;">
+                        <span id="lettersInfo" style="display: none;">Notas mostradas como letras simples</span>
+                        <span id="solfegeInfo" style="display: none;">Notas distribuídas nas duas claves (Sol e Fá)</span>
                     </div>
                 </div>
 
@@ -378,7 +371,6 @@
         const menuSection = document.getElementById('menuSection');
 
         let userNotation = 'letters';
-        let userClef = 'treble';
 
         startBtn.addEventListener('click', startTraining);
         stopBtn.addEventListener('click', stopTraining);
@@ -389,39 +381,26 @@
                 document.querySelectorAll('.option-button[data-notation]').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 userNotation = this.dataset.notation;
-                updateClefDisplay();
+                updateNotationInfo();
             });
         });
 
-        function updateClefDisplay() {
-            const clefSection = document.getElementById('clefSection');
-            const clefButtons = document.getElementById('clefButtons');
-            const bothClevesInfo = document.getElementById('bothClevesInfo');
+        function updateNotationInfo() {
+            const lettersInfo = document.getElementById('lettersInfo');
+            const solfegeInfo = document.getElementById('solfegeInfo');
             
             if (userNotation === 'solfege') {
-                clefButtons.style.display = 'none';
-                bothClevesInfo.style.display = 'block';
-                userClef = 'both';
+                lettersInfo.style.display = 'none';
+                solfegeInfo.style.display = 'block';
             } else {
-                clefButtons.style.display = 'flex';
-                bothClevesInfo.style.display = 'none';
-                userClef = 'treble'; // reset to default
-                document.querySelectorAll('.option-button[data-clef]').forEach(b => b.classList.remove('active'));
-                document.querySelector('.option-button[data-clef="treble"]').classList.add('active');
+                lettersInfo.style.display = 'block';
+                solfegeInfo.style.display = 'none';
             }
         }
 
-        document.querySelectorAll('.option-button[data-clef]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.option-button[data-clef]').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                userClef = this.dataset.clef;
-            });
-        });
-
-        // Set initial active buttons
+        // Set initial active button and info
         document.querySelector('.option-button[data-notation="letters"]').classList.add('active');
-        document.querySelector('.option-button[data-clef="treble"]').classList.add('active');
+        updateNotationInfo();
 
         function showError(message) {
             errorSection.style.display = 'block';
@@ -478,32 +457,20 @@
             errorSection.style.display = 'none';
         }
 
-        function getDisplayNote(note, clef = null) {
+        function getDisplayNote(note) {
             if (userNotation === 'solfege') {
                 const solfegeMap = {
                     'C': 'Dó', 'C#': 'Dó#', 'D': 'Ré', 'D#': 'Ré#', 'E': 'Mi',
                     'F': 'Fá', 'F#': 'Fá#', 'G': 'Sol', 'G#': 'Sol#', 'A': 'Lá', 'A#': 'Lá#', 'B': 'Si'
                 };
-                if (userClef === 'both') {
-                    // Mostra em ambas as claves
-                    return `${solfegeMap[note]} 🎼`;
-                }
-                return solfegeMap[note] || note;
+                return `${solfegeMap[note]}\n(Sol e Fá)`;
             }
             return note;
         }
 
         function pickNewNote() {
             currentTargetNote = NOTES[Math.floor(Math.random() * NOTES.length)];
-            let displayNote = getDisplayNote(currentTargetNote);
-            
-            if (userNotation === 'solfege' && userClef === 'both') {
-                const solfegeMap = {
-                    'C': 'Dó', 'C#': 'Dó#', 'D': 'Ré', 'D#': 'Ré#', 'E': 'Mi',
-                    'F': 'Fá', 'F#': 'Fá#', 'G': 'Sol', 'G#': 'Sol#', 'A': 'Lá', 'A#': 'Lá#', 'B': 'Si'
-                };
-                displayNote = `${solfegeMap[currentTargetNote]}\n(Sol e Fá)`;
-            }
+            const displayNote = getDisplayNote(currentTargetNote);
             
             targetNoteDisplay.textContent = displayNote;
             feedbackDisplay.textContent = '';
