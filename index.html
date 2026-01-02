@@ -197,6 +197,24 @@
             gap: 10px;
         }
 
+        .option-button {
+            background-color: #e5e5e5;
+            color: var(--color-text);
+            font-size: 14px;
+            padding: 10px 16px;
+            transition: all var(--duration-fast) ease;
+        }
+
+        .option-button:hover {
+            background-color: #d5d5d5;
+        }
+
+        .option-button.active {
+            background-color: var(--color-primary);
+            color: white;
+            box-shadow: 0 4px 8px rgba(33, 128, 132, 0.3);
+        }
+
         .note-list {
             font-size: 12px;
             color: var(--color-text-secondary);
@@ -252,12 +270,36 @@
     <div class="container">
         <h1>🎵 Treinador de Notas</h1>
 
-        <div class="controls">
-            <button class="button button-primary" id="startBtn">Iniciar</button>
-            <button class="button button-secondary" id="stopBtn" disabled>Sair</button>
+        <div id="menuSection" style="display: block;">
+            <div class="status-section">
+                <div class="message" style="margin-bottom: var(--space-20); font-weight: 500;">Escolha o formato das notas:</div>
+                
+                <div style="margin-bottom: var(--space-20);">
+                    <label style="display: block; margin-bottom: var(--space-12); font-weight: 500;">Notação:</label>
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <button class="button option-button" data-notation="letters" style="flex: 1; min-width: 120px;">Letras (C, D, E...)</button>
+                        <button class="button option-button" data-notation="solfege" style="flex: 1; min-width: 120px;">Cifras (Dó, Ré, Mi...)</button>
+                    </div>
+                </div>
+
+                <div id="clefSection" style="margin-bottom: var(--space-20);">
+                    <label style="display: block; margin-bottom: var(--space-12); font-weight: 500;">Clave:</label>
+                    <div id="clefButtons" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <button class="button option-button" data-clef="treble" style="flex: 1; min-width: 120px;">🎼 Clave de Sol</button>
+                        <button class="button option-button" data-clef="bass" style="flex: 1; min-width: 120px;">🎼 Clave de Fá</button>
+                    </div>
+                    <div id="bothClevesInfo" style="display: none; margin-top: var(--space-12); padding: var(--space-12); background: rgba(33, 128, 132, 0.1); border-radius: var(--radius-lg); color: var(--color-text-secondary); font-size: 14px;">
+                        Mostrando as duas claves (Sol e Fá)
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-top: var(--space-24);">
+                    <button class="button button-primary" id="startBtn">Iniciar Treinamento</button>
+                </div>
+            </div>
         </div>
 
-        <div class="status-section" id="statusSection">
+        <div id="statusSection" style="display: none;">
             <div class="message" id="initialMessage">
                 Clique em "Iniciar" para começar o treinamento. Você precisará permitir o acesso ao microfone.
             </div>
@@ -266,9 +308,12 @@
 
         <div id="trainingContent" style="display: none;">
             <div class="status-section status-active">
-                <div style="margin-bottom: var(--space-16);">
-                    <span class="indicator listening"></span>
-                    <span id="statusText" style="font-weight: 500;">Procurando nota...</span>
+                <div style="margin-bottom: var(--space-16); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span class="indicator listening"></span>
+                        <span id="statusText" style="font-weight: 500;">Procurando nota...</span>
+                    </div>
+                    <button class="button button-secondary" id="stopBtn" style="padding: 8px 16px; font-size: 14px; margin: 0;">Sair</button>
                 </div>
                 <div class="note-display" id="targetNote">C</div>
                 <div class="message">Toque a nota acima no seu instrumento</div>
@@ -330,9 +375,53 @@
         const frequencyDisplay = document.getElementById('frequencyDisplay');
         const statusText = document.getElementById('statusText');
         const attemptsDisplay = document.getElementById('attempts');
+        const menuSection = document.getElementById('menuSection');
+
+        let userNotation = 'letters';
+        let userClef = 'treble';
 
         startBtn.addEventListener('click', startTraining);
         stopBtn.addEventListener('click', stopTraining);
+
+        // Menu options
+        document.querySelectorAll('.option-button[data-notation]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.option-button[data-notation]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                userNotation = this.dataset.notation;
+                updateClefDisplay();
+            });
+        });
+
+        function updateClefDisplay() {
+            const clefSection = document.getElementById('clefSection');
+            const clefButtons = document.getElementById('clefButtons');
+            const bothClevesInfo = document.getElementById('bothClevesInfo');
+            
+            if (userNotation === 'solfege') {
+                clefButtons.style.display = 'none';
+                bothClevesInfo.style.display = 'block';
+                userClef = 'both';
+            } else {
+                clefButtons.style.display = 'flex';
+                bothClevesInfo.style.display = 'none';
+                userClef = 'treble'; // reset to default
+                document.querySelectorAll('.option-button[data-clef]').forEach(b => b.classList.remove('active'));
+                document.querySelector('.option-button[data-clef="treble"]').classList.add('active');
+            }
+        }
+
+        document.querySelectorAll('.option-button[data-clef]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.option-button[data-clef]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                userClef = this.dataset.clef;
+            });
+        });
+
+        // Set initial active buttons
+        document.querySelector('.option-button[data-notation="letters"]').classList.add('active');
+        document.querySelector('.option-button[data-clef="treble"]').classList.add('active');
 
         function showError(message) {
             errorSection.style.display = 'block';
@@ -354,9 +443,9 @@
                 microphone.connect(analyser);
 
                 isRunning = true;
-                startBtn.disabled = true;
                 stopBtn.disabled = false;
                 errorSection.style.display = 'none';
+                menuSection.style.display = 'none';
                 statusSection.style.display = 'none';
                 trainingContent.style.display = 'block';
                 attempts = 0;
@@ -372,7 +461,6 @@
 
         function stopTraining() {
             isRunning = false;
-            startBtn.disabled = false;
             stopBtn.disabled = true;
 
             if (microphone) {
@@ -385,15 +473,39 @@
                 cancelAnimationFrame(animationId);
             }
 
-            statusSection.style.display = 'block';
+            menuSection.style.display = 'block';
             trainingContent.style.display = 'none';
             errorSection.style.display = 'none';
-            document.getElementById('initialMessage').textContent = 'Treinamento finalizado! Clique em "Iniciar" para treinar novamente.';
+        }
+
+        function getDisplayNote(note, clef = null) {
+            if (userNotation === 'solfege') {
+                const solfegeMap = {
+                    'C': 'Dó', 'C#': 'Dó#', 'D': 'Ré', 'D#': 'Ré#', 'E': 'Mi',
+                    'F': 'Fá', 'F#': 'Fá#', 'G': 'Sol', 'G#': 'Sol#', 'A': 'Lá', 'A#': 'Lá#', 'B': 'Si'
+                };
+                if (userClef === 'both') {
+                    // Mostra em ambas as claves
+                    return `${solfegeMap[note]} 🎼`;
+                }
+                return solfegeMap[note] || note;
+            }
+            return note;
         }
 
         function pickNewNote() {
             currentTargetNote = NOTES[Math.floor(Math.random() * NOTES.length)];
-            targetNoteDisplay.textContent = currentTargetNote;
+            let displayNote = getDisplayNote(currentTargetNote);
+            
+            if (userNotation === 'solfege' && userClef === 'both') {
+                const solfegeMap = {
+                    'C': 'Dó', 'C#': 'Dó#', 'D': 'Ré', 'D#': 'Ré#', 'E': 'Mi',
+                    'F': 'Fá', 'F#': 'Fá#', 'G': 'Sol', 'G#': 'Sol#', 'A': 'Lá', 'A#': 'Lá#', 'B': 'Si'
+                };
+                displayNote = `${solfegeMap[currentTargetNote]}\n(Sol e Fá)`;
+            }
+            
+            targetNoteDisplay.textContent = displayNote;
             feedbackDisplay.textContent = '';
             feedbackDisplay.className = 'feedback';
             errorDetailsDisplay.textContent = '';
@@ -438,8 +550,10 @@
 
                 feedbackDisplay.textContent = '✗ Nota incorreta. Tente novamente.';
                 feedbackDisplay.className = 'feedback error';
-                errorDetailsDisplay.textContent = `Você tocou: ${detectedNote} | Esperado: ${currentTargetNote}`;
-                statusText.textContent = `Ouvido: ${detectedNote}`;
+                const detectedDisplay = getDisplayNote(detectedNote);
+                const expectedDisplay = getDisplayNote(currentTargetNote);
+                errorDetailsDisplay.textContent = `Você tocou: ${detectedDisplay} | Esperado: ${expectedDisplay}`;
+                statusText.textContent = `Ouvido: ${detectedDisplay}`;
             } else {
                 feedbackDisplay.textContent = '';
                 frequencyDisplay.textContent = 'Esperando som...';
